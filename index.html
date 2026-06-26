@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hair by Nechama | Styling, Cuts & Wigs</title>
+    <meta
+      name="description"
+      content="Hair by Nechama offers hair styling, cutting, wig styling, fitting, and care in a calm private setting."
+    />
+    <link rel="stylesheet" href="styles.css?v=multi-services-1" />
+  </head>
+  <body>
+    <header class="site-header" data-header>
+      <a class="brand" href="#top" aria-label="Hair by Nechama home">
+        <img class="brand-logo combined-brand-logo" src="assets/hair-by-nechama-combined-logo.png" alt="Hair by Nechama logo" />
+      </a>
+
+      <button class="menu-button" type="button" aria-label="Open menu" aria-expanded="false" data-menu-button>
+        <span></span>
+        <span></span>
+      </button>
+
+      <nav class="site-nav" data-nav aria-label="Main navigation">
+        <a href="#gallery">Gallery</a>
+        <a href="#prices">Prices</a>
+        <button class="nav-cta" type="button" data-booking-open>Contact</button>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <img class="hero-image" src="assets/hair-by-nechama-hero.png" alt="A calm private salon with hair tools and wigs on display" />
+        <div class="hero-shade" aria-hidden="true"></div>
+        <div class="hero-content">
+          <h1 id="hero-title" class="hero-logo-title">
+            <img src="assets/hair-by-nechama-wordmark.png" alt="Hair by Nechama" />
+          </h1>
+          <div class="hero-actions">
+            <button class="button primary" type="button" data-booking-open>Book an appointment</button>
+            <a class="button secondary" href="#gallery">View gallery</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section gallery-section" id="gallery" aria-labelledby="gallery-title">
+        <div class="section-heading simple-heading">
+          <h2 id="gallery-title">Gallery</h2>
+        </div>
+        <div class="gallery-grid" data-gallery-grid></div>
+        <p class="empty-gallery" data-empty-gallery>No gallery photos yet.</p>
+      </section>
+
+      <section class="section prices-section" id="prices" aria-labelledby="prices-title">
+        <div class="section-heading simple-heading">
+          <h2 id="prices-title">Prices</h2>
+        </div>
+        <div class="price-list" data-price-list></div>
+      </section>
+
+      <section class="booking-section" id="booking" aria-labelledby="booking-title">
+        <div class="booking-copy">
+          <h2 id="booking-title">Contact</h2>
+          <div class="contact-links">
+            <a href="tel:+447385034659" data-public-phone>Text or call: +44 7385 034659</a>
+            <a href="mailto:nechmaabrenig@gmail.com" data-public-email>nechmaabrenig@gmail.com</a>
+          </div>
+          <button class="button primary booking-trigger" type="button" data-booking-open>Book now</button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <a class="brand footer-brand" href="#top" aria-label="Hair by Nechama home">
+        <img class="brand-logo combined-brand-logo" src="assets/hair-by-nechama-combined-logo.png" alt="Hair by Nechama logo" />
+      </a>
+      <button class="footer-admin-button" type="button" data-admin-open>Admin</button>
+    </footer>
+
+    <section class="lightbox-panel" aria-label="Gallery image preview" aria-hidden="true" data-lightbox-panel>
+      <div class="lightbox-backdrop" data-lightbox-close></div>
+      <div class="lightbox-card" role="dialog" aria-modal="true" aria-label="Gallery image preview">
+        <button class="icon-button lightbox-close" type="button" aria-label="Close image preview" data-lightbox-close>&times;</button>
+        <img src="" alt="" data-lightbox-image />
+      </div>
+    </section>
+
+    <section class="booking-panel" aria-label="Booking calendar" aria-hidden="true" data-booking-panel>
+      <div class="booking-backdrop" data-booking-close></div>
+      <div class="booking-card" role="dialog" aria-modal="true" aria-labelledby="booking-modal-title">
+        <div class="booking-card-header">
+          <div>
+            <p class="eyebrow">Contact</p>
+            <h2 id="booking-modal-title">Choose a date</h2>
+          </div>
+          <button class="icon-button" type="button" aria-label="Close booking calendar" data-booking-close>&times;</button>
+        </div>
+
+        <div class="calendar-shell">
+          <div class="calendar-top">
+            <button class="calendar-nav" type="button" aria-label="Previous month" data-calendar-prev>&lsaquo;</button>
+            <strong data-calendar-label></strong>
+            <button class="calendar-nav" type="button" aria-label="Next month" data-calendar-next>&rsaquo;</button>
+          </div>
+          <div class="calendar-weekdays" aria-hidden="true">
+            <span>Mon</span>
+            <span>Tue</span>
+            <span>Wed</span>
+            <span>Thu</span>
+            <span>Fri</span>
+            <span>Sat</span>
+            <span>Sun</span>
+          </div>
+          <div class="calendar-grid" data-calendar-grid></div>
+        </div>
+
+        <div class="time-picker" data-time-picker hidden>
+          <h3 data-selected-date-label>Times</h3>
+          <div class="time-grid" data-time-grid></div>
+        </div>
+
+        <form class="booking-form" data-booking-form hidden>
+          <input type="hidden" name="date" data-booking-date />
+          <input type="hidden" name="time" data-booking-time />
+          <label>
+            Name
+            <input type="text" name="name" autocomplete="name" required />
+          </label>
+          <label>
+            Email
+            <input type="email" name="email" autocomplete="email" required />
+          </label>
+          <label>
+            Phone
+            <input type="tel" name="phone" autocomplete="tel" required />
+          </label>
+          <label>
+            Services
+            <select name="service" required multiple size="4" data-service-select>
+              <option value="">Choose a service</option>
+              <option>Not sure yet</option>
+            </select>
+          </label>
+          <button class="button primary full" type="submit">Email this booking</button>
+        </form>
+        <p class="form-note booking-note" data-form-note aria-live="polite"></p>
+      </div>
+    </section>
+
+    <section class="admin-panel" aria-label="Admin panel" aria-hidden="true" data-admin-panel>
+      <div class="admin-backdrop" data-admin-close></div>
+      <div class="admin-card" role="dialog" aria-modal="true" aria-labelledby="admin-title">
+        <div class="admin-card-header">
+          <div>
+            <p class="eyebrow">Admin</p>
+            <h2 id="admin-title">Hair by Nechama dashboard</h2>
+          </div>
+          <button class="icon-button" type="button" aria-label="Close admin panel" data-admin-close>&times;</button>
+        </div>
+
+        <div class="admin-login" data-admin-login>
+          <form class="admin-form" data-admin-login-form>
+            <label>
+              Password
+              <span class="password-row">
+                <input id="admin-login-password" type="password" name="password" autocomplete="current-password" required />
+                <button class="small-button" type="button" data-password-toggle data-password-target="admin-login-password">Show</button>
+              </span>
+            </label>
+            <button class="button primary full" type="submit">Log in</button>
+            <button class="button secondary dark-text full" type="button" data-password-reset>Reset password</button>
+            <p class="form-note" data-admin-login-note aria-live="polite"></p>
+          </form>
+        </div>
+
+        <div data-admin-content hidden>
+          <div class="admin-upload">
+            <h3>Contact details</h3>
+            <form class="admin-form nested-form contact-admin-form" data-contact-form>
+              <label>
+                Phone number
+                <input type="tel" name="phone" autocomplete="tel" required />
+              </label>
+              <label>
+                Email
+                <input type="email" name="email" autocomplete="email" required />
+              </label>
+              <button class="button primary full" type="submit">Save contact details</button>
+            </form>
+          </div>
+
+          <div class="admin-upload">
+            <h3>Styles and prices</h3>
+            <div class="admin-style-list" data-admin-style-list></div>
+            <form class="admin-form nested-form" data-style-add-form>
+              <label>
+                Style name
+                <input type="text" name="name" placeholder="Blow dry" required />
+              </label>
+              <label>
+                Price
+                <input type="text" name="price" placeholder="From £35" required />
+              </label>
+              <button class="button primary full" type="submit">Add style</button>
+            </form>
+          </div>
+
+          <div class="admin-upload">
+            <label>
+              Upload gallery photos
+              <input type="file" accept="image/*" multiple data-gallery-upload />
+            </label>
+            <div class="admin-gallery-list" data-admin-gallery-list></div>
+          </div>
+
+          <div class="admin-upload admin-calendar-section">
+            <h3>Bookings calendar</h3>
+            <details class="admin-add-booking">
+              <summary>Add booking</summary>
+              <form class="admin-form admin-booking-form" data-admin-booking-form>
+                <label>
+                  Date
+                  <input type="date" name="date" required />
+                </label>
+                <label>
+                  Time
+                  <input type="time" name="time" required />
+                </label>
+                <label>
+                  Name
+                  <input type="text" name="name" autocomplete="name" required />
+                </label>
+                <label>
+                  Email
+                  <input type="email" name="email" autocomplete="email" />
+                </label>
+                <label>
+                  Phone
+                  <input type="tel" name="phone" autocomplete="tel" />
+                </label>
+                <label>
+                  Services
+                  <select name="service" multiple size="4" data-admin-booking-service></select>
+                </label>
+                <label>
+                  Status
+                  <select name="status">
+                    <option value="confirmed">Confirmed</option>
+                    <option value="pending">Pending</option>
+                  </select>
+                </label>
+                <button class="button primary full" type="submit">Add booking</button>
+              </form>
+            </details>
+
+            <div class="admin-calendar-shell">
+              <div class="calendar-top">
+                <button class="calendar-nav" type="button" aria-label="Previous admin month" data-admin-calendar-prev>&lsaquo;</button>
+                <strong data-admin-calendar-label></strong>
+                <button class="calendar-nav" type="button" aria-label="Next admin month" data-admin-calendar-next>&rsaquo;</button>
+              </div>
+              <div class="calendar-weekdays" aria-hidden="true">
+                <span>Mon</span>
+                <span>Tue</span>
+                <span>Wed</span>
+                <span>Thu</span>
+                <span>Fri</span>
+                <span>Sat</span>
+                <span>Sun</span>
+              </div>
+              <div class="admin-calendar-grid" data-admin-calendar-grid></div>
+            </div>
+
+            <div class="admin-availability-panel">
+              <h4 data-admin-selected-date>Times for selected date</h4>
+              <div class="time-chip-list" data-admin-date-time-list></div>
+              <div class="date-time-actions">
+                <button class="small-button" type="button" data-date-add-toggle>Add time</button>
+                <button class="delete-button" type="button" data-date-delete-selected hidden>Delete time</button>
+                <button class="delete-button" type="button" data-date-not-working>Close</button>
+              </div>
+              <form class="inline-admin-form" data-date-time-form hidden>
+                <input type="time" name="time" required />
+                <button class="small-button" type="submit">Save time</button>
+                <button class="small-button" type="button" data-date-add-cancel>Cancel</button>
+              </form>
+            </div>
+
+            <h4 data-admin-bookings-title>Bookings for selected date</h4>
+            <div class="admin-booking-list" data-admin-booking-list></div>
+
+            <details class="admin-subdropdown">
+              <summary>Regular availability</summary>
+              <div class="weekday-time-list" data-regular-time-list></div>
+            </details>
+          </div>
+        </div>
+        <p class="form-note" data-admin-note aria-live="polite"></p>
+      </div>
+    </section>
+
+    <script src="script.js?v=multi-services-1"></script>
+  </body>
+</html>
