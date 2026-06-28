@@ -132,7 +132,7 @@ const sendResendEmail = async (email) => {
   const result = await resendResponse.json().catch(() => ({}));
   if (!resendResponse.ok) {
     console.error("Resend email failed", result);
-    throw new Error("Email provider rejected the message.");
+    throw new Error(result.message || result.error || "Email provider rejected the message.");
   }
 
   return result.id || null;

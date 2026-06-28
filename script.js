@@ -184,6 +184,11 @@ const renderContactDetails = () => {
 };
 
 const sendWebsiteEmail = async (payload) => {
+  const isLocalPreview = ["127.0.0.1", "localhost"].includes(window.location.hostname);
+  if (isLocalPreview) {
+    throw new Error("Email sending only works on the live Vercel website, not this local preview.");
+  }
+
   const response = await fetch("/api/send-email", {
     method: "POST",
     headers: {
@@ -191,7 +196,9 @@ const sendWebsiteEmail = async (payload) => {
     },
     body: JSON.stringify(payload),
   });
-  const result = await response.json().catch(() => ({}));
+  const result = await response.json().catch(() => ({
+    error: "Email API is not available on this website.",
+  }));
 
   if (!response.ok || !result.ok) {
     throw new Error(result.error || "Email could not be sent.");
@@ -1457,7 +1464,7 @@ bookingForm.addEventListener("submit", async (event) => {
     formNote.textContent = `${confirmation} Your request has been emailed and a copy has been sent to you.`;
   } catch (error) {
     console.error(error);
-    formNote.textContent = `${confirmation} Automatic email is not ready, so an email draft is opening now.`;
+    formNote.textContent = `${confirmation} ${error.message} An email draft is opening as a backup.`;
     openEmailDraft(getContactDetails().email, emailSubject, emailBody);
   }
 });
@@ -1782,7 +1789,7 @@ adminBookingList.addEventListener("click", async (event) => {
       adminNote.textContent = "Booking confirmed and confirmation email sent.";
     } catch (error) {
       console.error(error);
-      adminNote.textContent = "Booking confirmed. Automatic email is not ready, so a confirmation draft is opening now.";
+      adminNote.textContent = `Booking confirmed. ${error.message} A confirmation draft is opening as a backup.`;
       openEmailDraft(booking.email, emailSubject, emailBody);
     }
     return;
