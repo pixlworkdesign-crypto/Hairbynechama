@@ -8,7 +8,7 @@
       name="description"
       content="Hair by Nechama offers hair styling, cutting, wig styling, fitting, and care in a calm private setting."
     />
-    <link rel="stylesheet" href="styles.css?v=multi-services-1" />
+    <link rel="stylesheet" href="styles.css?v=service-quantities-1" />
   </head>
   <body>
     <header class="site-header" data-header>
@@ -63,7 +63,7 @@
           <h2 id="booking-title">Contact</h2>
           <div class="contact-links">
             <a href="tel:+447385034659" data-public-phone>Text or call: +44 7385 034659</a>
-            <a href="mailto:nechmaabrenig@gmail.com" data-public-email>nechmaabrenig@gmail.com</a>
+            <a href="mailto:nechamabrenig@gmail.com" data-public-email>nechamabrenig@gmail.com</a>
           </div>
           <button class="button primary booking-trigger" type="button" data-booking-open>Book now</button>
         </div>
@@ -134,14 +134,11 @@
             Phone
             <input type="tel" name="phone" autocomplete="tel" required />
           </label>
-          <label>
-            Services
-            <select name="service" required multiple size="4" data-service-select>
-              <option value="">Choose a service</option>
-              <option>Not sure yet</option>
-            </select>
-          </label>
-          <button class="button primary full" type="submit">Email this booking</button>
+          <div class="form-field">
+            <span class="field-label">Services and quantities</span>
+            <div class="service-quantity-list" data-service-list></div>
+          </div>
+          <button class="button primary full" type="submit">Send booking request</button>
         </form>
         <p class="form-note booking-note" data-form-note aria-live="polite"></p>
       </div>
@@ -238,10 +235,10 @@
                   Phone
                   <input type="tel" name="phone" autocomplete="tel" />
                 </label>
-                <label>
-                  Services
-                  <select name="service" multiple size="4" data-admin-booking-service></select>
-                </label>
+                <div class="form-field service-form-field">
+                  <span class="field-label">Services and quantities</span>
+                  <div class="service-quantity-list compact" data-admin-booking-service-list></div>
+                </div>
                 <label>
                   Status
                   <select name="status">
@@ -299,6 +296,6 @@
       </div>
     </section>
 
-    <script src="script.js?v=multi-services-1"></script>
+    <script src="script.js?v=service-quantities-1"></script>
   </body>
 </html>

@@ -607,6 +607,17 @@ label {
   font-weight: 800;
 }
 
+.form-field {
+  display: grid;
+  gap: 8px;
+}
+
+.field-label {
+  color: var(--soft-ink);
+  font-size: 14px;
+  font-weight: 800;
+}
+
 input,
 select,
 textarea {
@@ -631,6 +642,45 @@ select[multiple] {
 select[multiple] option {
   padding: 8px 10px;
   border-radius: 6px;
+}
+
+.service-quantity-list {
+  display: grid;
+  gap: 8px;
+}
+
+.service-quantity-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) 78px;
+  gap: 10px;
+  align-items: center;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fffdfb;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.service-quantity-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  accent-color: var(--rose-dark);
+}
+
+.service-quantity-row input[type="number"] {
+  min-height: 34px;
+  padding: 7px 8px;
+  border-radius: 999px;
+  text-align: center;
+}
+
+.service-quantity-row input[type="number"]:disabled {
+  color: rgba(32, 28, 27, 0.42);
+  background: rgba(247, 240, 232, 0.7);
 }
 
 input:focus,
@@ -1651,6 +1701,7 @@ textarea:focus {
 
 .admin-style-item label,
 .nested-form label,
+.admin-booking-form .form-field,
 .admin-booking-form label,
 .admin-login label,
 .admin-upload > label {
@@ -1755,6 +1806,10 @@ textarea:focus {
 .admin-booking-form label:nth-of-type(3),
 .admin-booking-form label:nth-of-type(4),
 .admin-booking-form label:nth-of-type(5) {
+  grid-column: span 2;
+}
+
+.admin-booking-form .service-form-field {
   grid-column: span 2;
 }
 

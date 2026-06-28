@@ -16,6 +16,7 @@ const selectedDateLabel = document.querySelector("[data-selected-date-label]");
 const bookingDateInput = document.querySelector("[data-booking-date]");
 const bookingTimeInput = document.querySelector("[data-booking-time]");
 const serviceSelect = document.querySelector("[data-service-select]");
+const serviceList = document.querySelector("[data-service-list]");
 const priceList = document.querySelector("[data-price-list]");
 const adminOpenButton = document.querySelector("[data-admin-open]");
 const adminPanel = document.querySelector("[data-admin-panel]");
@@ -38,6 +39,7 @@ const adminGalleryList = document.querySelector("[data-admin-gallery-list]");
 const adminBookingList = document.querySelector("[data-admin-booking-list]");
 const adminBookingForm = document.querySelector("[data-admin-booking-form]");
 const adminBookingServiceSelect = document.querySelector("[data-admin-booking-service]");
+const adminBookingServiceList = document.querySelector("[data-admin-booking-service-list]");
 const contactForm = document.querySelector("[data-contact-form]");
 const publicPhoneLink = document.querySelector("[data-public-phone]");
 const publicEmailLink = document.querySelector("[data-public-email]");
@@ -69,8 +71,9 @@ const adminPasswordStorageKey = "hairByNechamaAdminPassword";
 const contactStorageKey = "hairByNechamaContactDetails";
 const defaultContactDetails = {
   phone: "+44 7385 034659",
-  email: "nechmaabrenig@gmail.com",
+  email: "nechamabrenig@gmail.com",
 };
+const legacyContactEmailTypo = "nechmaabrenig@gmail.com";
 const defaultAdminPassword = "nechama123";
 const defaultStyles = [
   { id: "styling", name: "Styling", price: "Price on request" },
@@ -149,9 +152,11 @@ const setAdminPassword = (password) => {
 
 const getContactDetails = () => {
   const savedContact = readJson(contactStorageKey, {});
+  const savedEmail = String(savedContact.email || defaultContactDetails.email).trim();
+
   return {
     phone: String(savedContact.phone || defaultContactDetails.phone).trim(),
-    email: String(savedContact.email || defaultContactDetails.email).trim(),
+    email: savedEmail === legacyContactEmailTypo ? defaultContactDetails.email : savedEmail,
   };
 };
 
@@ -178,6 +183,27 @@ const renderContactDetails = () => {
   }
 };
 
+const sendWebsiteEmail = async (payload) => {
+  const response = await fetch("/api/send-email", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+  const result = await response.json().catch(() => ({}));
+
+  if (!response.ok || !result.ok) {
+    throw new Error(result.error || "Email could not be sent.");
+  }
+
+  return result;
+};
+
+const openEmailDraft = (to, subject, body) => {
+  window.location.href = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+};
+
 const getStyles = () => {
   const savedStyles = readJson(stylesStorageKey, null);
 
@@ -194,6 +220,89 @@ const getStyles = () => {
 
 const saveStyles = (styles) => {
   return saveJson(stylesStorageKey, styles);
+};
+
+const getServiceChoices = () => [...getStyles(), { id: "not-sure", name: "Not sure yet", price: "" }];
+
+const renderServiceQuantityList = (container, choices, prefix) => {
+  if (!container) return;
+
+  container.innerHTML = "";
+  choices.forEach((style) => {
+    const row = document.createElement("label");
+    const check = document.createElement("input");
+    const name = document.createElement("span");
+    const quantity = document.createElement("input");
+
+    row.className = "service-quantity-row";
+    row.dataset.serviceRow = "";
+    check.type = "checkbox";
+    check.value = style.name;
+    check.dataset.serviceCheckbox = "";
+    check.name = `${prefix}Service`;
+    quantity.type = "number";
+    quantity.min = "1";
+    quantity.step = "1";
+    quantity.value = "1";
+    quantity.inputMode = "numeric";
+    quantity.disabled = true;
+    quantity.dataset.serviceQuantity = "";
+    quantity.name = `${prefix}Quantity`;
+    quantity.setAttribute("aria-label", `${style.name} quantity`);
+    name.textContent = style.name;
+
+    row.append(check, name, quantity);
+    container.append(row);
+  });
+};
+
+const resetServiceQuantityList = (container) => {
+  if (!container) return;
+
+  container.querySelectorAll("[data-service-row]").forEach((row) => {
+    const checkbox = row.querySelector("[data-service-checkbox]");
+    const quantity = row.querySelector("[data-service-quantity]");
+
+    if (checkbox) checkbox.checked = false;
+    if (quantity) {
+      quantity.value = "1";
+      quantity.disabled = true;
+    }
+  });
+};
+
+const collectSelectedServices = (container) => {
+  if (!container) return [];
+
+  return Array.from(container.querySelectorAll("[data-service-row]"))
+    .map((row) => {
+      const checkbox = row.querySelector("[data-service-checkbox]");
+      const quantityInput = row.querySelector("[data-service-quantity]");
+
+      if (!checkbox || !checkbox.checked) return null;
+
+      const name = String(checkbox.value || "").trim();
+      const quantity = Math.max(1, Number.parseInt(quantityInput?.value || "1", 10) || 1);
+      return {
+        name,
+        quantity,
+        label: name === "Not sure yet" ? name : `${name} x${quantity}`,
+      };
+    })
+    .filter(Boolean);
+};
+
+const updateServiceQuantityState = (event) => {
+  const checkbox = event.target.closest("[data-service-checkbox]");
+  if (!checkbox) return;
+
+  const row = checkbox.closest("[data-service-row]");
+  const quantity = row?.querySelector("[data-service-quantity]");
+  if (!quantity) return;
+
+  const isUnsure = checkbox.value === "Not sure yet";
+  quantity.disabled = !checkbox.checked || isUnsure;
+  if (isUnsure) quantity.value = "1";
 };
 
 let galleryCache = readJson(galleryStorageKey, []);
@@ -513,8 +622,10 @@ const renderStyles = () => {
 
   priceList.innerHTML = "";
   adminStyleList.innerHTML = "";
-  serviceSelect.innerHTML = "";
+  if (serviceSelect) serviceSelect.innerHTML = "";
   if (adminBookingServiceSelect) adminBookingServiceSelect.innerHTML = "";
+  renderServiceQuantityList(serviceList, getServiceChoices(), "public");
+  renderServiceQuantityList(adminBookingServiceList, getServiceChoices(), "admin");
 
   styles.forEach((style) => {
     const priceItem = document.createElement("div");
@@ -527,11 +638,13 @@ const renderStyles = () => {
     priceItem.append(priceName, priceValue);
     priceList.append(priceItem);
 
-    const serviceOption = document.createElement("option");
-    serviceOption.value = style.name;
-    serviceOption.textContent = style.name;
-    serviceSelect.append(serviceOption);
-    if (adminBookingServiceSelect) adminBookingServiceSelect.append(serviceOption.cloneNode(true));
+    if (serviceSelect || adminBookingServiceSelect) {
+      const serviceOption = document.createElement("option");
+      serviceOption.value = style.name;
+      serviceOption.textContent = style.name;
+      if (serviceSelect) serviceSelect.append(serviceOption);
+      if (adminBookingServiceSelect) adminBookingServiceSelect.append(serviceOption.cloneNode(true));
+    }
 
     const adminItem = document.createElement("div");
     const nameLabel = document.createElement("label");
@@ -571,11 +684,13 @@ const renderStyles = () => {
   saveAllButton.textContent = "Save all prices";
   adminStyleList.append(saveAllButton);
 
-  const unsureOption = document.createElement("option");
-  unsureOption.value = "Not sure yet";
-  unsureOption.textContent = "Not sure yet";
-  serviceSelect.append(unsureOption);
-  if (adminBookingServiceSelect) adminBookingServiceSelect.append(unsureOption.cloneNode(true));
+  if (serviceSelect || adminBookingServiceSelect) {
+    const unsureOption = document.createElement("option");
+    unsureOption.value = "Not sure yet";
+    unsureOption.textContent = "Not sure yet";
+    if (serviceSelect) serviceSelect.append(unsureOption);
+    if (adminBookingServiceSelect) adminBookingServiceSelect.append(unsureOption.cloneNode(true));
+  }
 };
 
 const renderGallery = () => {
@@ -1049,6 +1164,8 @@ adminOpenButton.addEventListener("click", openAdmin);
 adminCloseButtons.forEach((button) => button.addEventListener("click", closeAdmin));
 bookingOpenButtons.forEach((button) => button.addEventListener("click", openBooking));
 bookingCloseButtons.forEach((button) => button.addEventListener("click", closeBooking));
+if (serviceList) serviceList.addEventListener("change", updateServiceQuantityState);
+if (adminBookingServiceList) adminBookingServiceList.addEventListener("change", updateServiceQuantityState);
 lightboxCloseButtons.forEach((button) => button.addEventListener("click", closeLightbox));
 
 adminContent.addEventListener("click", (event) => {
@@ -1265,7 +1382,7 @@ timeGrid.addEventListener("click", (event) => {
   formNote.textContent = "";
 });
 
-bookingForm.addEventListener("submit", (event) => {
+bookingForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   if (!selectedDate || !selectedTime) {
@@ -1281,14 +1398,20 @@ bookingForm.addEventListener("submit", (event) => {
 
   const formData = new FormData(bookingForm);
   const bookings = getBookings();
-  const selectedServices = formData.getAll("service").map((service) => String(service).trim()).filter(Boolean);
+  const selectedServices = collectSelectedServices(serviceList);
+  if (!selectedServices.length) {
+    formNote.textContent = "Choose at least one service.";
+    return;
+  }
+
   const bookingDetails = {
     date: selectedDate,
     time: selectedTime,
     name: formData.get("name"),
     email: formData.get("email"),
     phone: formData.get("phone"),
-    service: selectedServices.length ? selectedServices.join(", ") : "Not sure yet",
+    service: selectedServices.map((service) => service.label).join(", "),
+    services: selectedServices,
   };
 
   const bookingRecord = {
@@ -1303,6 +1426,7 @@ bookingForm.addEventListener("submit", (event) => {
   const bookingSaved = saveJson(bookingStorageKey, bookings);
   const confirmation = "This booking is not confirmed yet. You will receive a confirmation email in the next 24 hours.";
   const emailSubject = `Hair by Nechama booking - ${formatDisplayDate(selectedDate)} at ${selectedTime}`;
+  const approvalUrl = getApprovalLink(bookingRecord);
   const emailBody = [
     "New booking request",
     "",
@@ -1311,18 +1435,31 @@ bookingForm.addEventListener("submit", (event) => {
     `Name: ${bookingDetails.name}`,
     `Email: ${bookingDetails.email}`,
     `Phone: ${bookingDetails.phone}`,
-    `Service: ${bookingDetails.service}`,
+    `Services: ${bookingDetails.service}`,
     "",
-    `Approve on the website: ${getApprovalLink(bookingRecord)}`,
+    `Approve on the website: ${approvalUrl}`,
   ].join("\n");
 
   bookingForm.reset();
+  resetServiceQuantityList(serviceList);
   renderTimes();
   formNote.textContent = bookingSaved
-    ? `${confirmation} Opening email now.`
-    : `${confirmation} Opening email now, but this browser could not save the booking locally.`;
+    ? `${confirmation} Sending email now.`
+    : `${confirmation} Sending email now, but this browser could not save the booking locally.`;
   renderAdminBookings();
-  window.location.href = `mailto:${getContactDetails().email}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+
+  try {
+    await sendWebsiteEmail({
+      type: "booking-request",
+      booking: bookingRecord,
+      approvalUrl,
+    });
+    formNote.textContent = `${confirmation} Your request has been emailed.`;
+  } catch (error) {
+    console.error(error);
+    formNote.textContent = `${confirmation} Automatic email is not ready, so an email draft is opening now.`;
+    openEmailDraft(getContactDetails().email, emailSubject, emailBody);
+  }
 });
 
 adminLoginForm.addEventListener("submit", (event) => {
@@ -1427,7 +1564,7 @@ if (adminBookingForm) {
     const name = String(formData.get("name") || "").trim();
     const email = String(formData.get("email") || "").trim();
     const phone = String(formData.get("phone") || "").trim();
-    const services = formData.getAll("service").map((service) => String(service).trim()).filter(Boolean);
+    const services = collectSelectedServices(adminBookingServiceList);
     const status = String(formData.get("status") || "confirmed").trim();
 
     if (!date || !time || !name) {
@@ -1442,7 +1579,8 @@ if (adminBookingForm) {
       name,
       email,
       phone,
-      service: services.length ? services.join(", ") : "Not specified",
+      service: services.length ? services.map((service) => service.label).join(", ") : "Not specified",
+      services,
       status: status === "pending" ? "pending" : "confirmed",
       createdAt: new Date().toISOString(),
       createdBy: "admin",
@@ -1462,6 +1600,7 @@ if (adminBookingForm) {
     adminVisibleMonth = new Date(year, month - 1, 1);
     adminSelectedDate = date;
     adminBookingForm.reset();
+    resetServiceQuantityList(adminBookingServiceList);
     renderCalendar();
     renderTimes();
     renderAdminBookings();
@@ -1592,7 +1731,7 @@ adminGalleryList.addEventListener("click", async (event) => {
   adminNote.textContent = "Photo removed.";
 });
 
-adminBookingList.addEventListener("click", (event) => {
+adminBookingList.addEventListener("click", async (event) => {
   const approveButton = event.target.closest("[data-approve-booking]");
   if (approveButton) {
     const bookings = getBookings();
@@ -1619,7 +1758,7 @@ adminBookingList.addEventListener("click", (event) => {
 
     renderTimes();
     renderAdminBookings();
-    adminNote.textContent = "Booking confirmed. Opening confirmation email now.";
+    adminNote.textContent = "Booking confirmed. Sending confirmation email now.";
 
     const emailSubject = `Hair by Nechama booking confirmed - ${formatDisplayDate(booking.date)} at ${booking.time}`;
     const emailBody = [
@@ -1629,13 +1768,23 @@ adminBookingList.addEventListener("click", (event) => {
       "",
       `Date: ${formatDisplayDate(booking.date)}`,
       `Time: ${booking.time}`,
-      `Service: ${booking.service || "Not specified"}`,
+      `Services: ${booking.service || "Not specified"}`,
       "",
       "Thank you,",
       "Hair by Nechama",
     ].join("\n");
 
-    window.location.href = `mailto:${booking.email}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+    try {
+      await sendWebsiteEmail({
+        type: "booking-confirmation",
+        booking,
+      });
+      adminNote.textContent = "Booking confirmed and confirmation email sent.";
+    } catch (error) {
+      console.error(error);
+      adminNote.textContent = "Booking confirmed. Automatic email is not ready, so a confirmation draft is opening now.";
+      openEmailDraft(booking.email, emailSubject, emailBody);
+    }
     return;
   }
 
