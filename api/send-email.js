@@ -57,6 +57,35 @@ const buildBookingRequestEmail = ({ booking, approvalUrl }) => {
   };
 };
 
+const buildRequestReceivedEmail = ({ booking }) => {
+  const customerEmail = clean(booking.email);
+  const date = formatBookingDate(booking.date);
+
+  if (!customerEmail) {
+    throw new Error("Customer email is missing.");
+  }
+
+  return {
+    to: customerEmail,
+    reply_to: adminEmail,
+    subject: `Hair by Nechama booking request received - ${date} at ${clean(booking.time)}`,
+    text: [
+      `Hi ${clean(booking.name)},`,
+      "",
+      "Thank you, your Hair by Nechama booking request has been received.",
+      "",
+      "This booking is not confirmed yet. You will receive a confirmation email in the next 24 hours.",
+      "",
+      `Date: ${date}`,
+      `Time: ${clean(booking.time)}`,
+      `Services: ${clean(booking.service) || "Not specified"}`,
+      "",
+      "Thank you,",
+      "Hair by Nechama",
+    ].join("\n"),
+  };
+};
+
 const buildConfirmationEmail = ({ booking }) => {
   const customerEmail = clean(booking.email);
   const date = formatBookingDate(booking.date);
@@ -84,6 +113,31 @@ const buildConfirmationEmail = ({ booking }) => {
   };
 };
 
+const sendResendEmail = async (email) => {
+  const resendResponse = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: fromEmail,
+      to: [email.to],
+      reply_to: email.reply_to,
+      subject: email.subject,
+      text: email.text,
+    }),
+  });
+
+  const result = await resendResponse.json().catch(() => ({}));
+  if (!resendResponse.ok) {
+    console.error("Resend email failed", result);
+    throw new Error("Email provider rejected the message.");
+  }
+
+  return result.id || null;
+};
+
 module.exports = async (request, response) => {
   if (request.method === "OPTIONS") {
     response.statusCode = 204;
@@ -103,43 +157,30 @@ module.exports = async (request, response) => {
 
   try {
     const { type, booking = {}, approvalUrl = "" } = await readJsonBody(request);
-    const email =
+    const emails =
       type === "booking-request"
-        ? buildBookingRequestEmail({ booking, approvalUrl })
+        ? [
+            buildBookingRequestEmail({ booking, approvalUrl }),
+            buildRequestReceivedEmail({ booking }),
+          ]
         : type === "booking-confirmation"
-          ? buildConfirmationEmail({ booking })
-          : null;
+          ? [buildConfirmationEmail({ booking })]
+          : [];
 
-    if (!email) {
+    if (!emails.length) {
       json(response, 400, { ok: false, error: "Unknown email type." });
       return;
     }
 
-    const resendResponse = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: fromEmail,
-        to: [email.to],
-        reply_to: email.reply_to,
-        subject: email.subject,
-        text: email.text,
-      }),
-    });
-
-    const result = await resendResponse.json().catch(() => ({}));
-    if (!resendResponse.ok) {
-      console.error("Resend email failed", result);
-      json(response, 502, { ok: false, error: "Email provider rejected the message." });
-      return;
+    const ids = [];
+    for (const email of emails) {
+      ids.push(await sendResendEmail(email));
     }
 
-    json(response, 200, { ok: true, id: result.id || null });
+    json(response, 200, { ok: true, ids });
   } catch (error) {
     console.error("Email function failed", error);
-    json(response, 500, { ok: false, error: "Email could not be sent." });
+    const statusCode = error.message === "Email provider rejected the message." ? 502 : 500;
+    json(response, statusCode, { ok: false, error: error.message || "Email could not be sent." });
   }
 };

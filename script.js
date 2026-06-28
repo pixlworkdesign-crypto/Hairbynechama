@@ -1454,7 +1454,7 @@ bookingForm.addEventListener("submit", async (event) => {
       booking: bookingRecord,
       approvalUrl,
     });
-    formNote.textContent = `${confirmation} Your request has been emailed.`;
+    formNote.textContent = `${confirmation} Your request has been emailed and a copy has been sent to you.`;
   } catch (error) {
     console.error(error);
     formNote.textContent = `${confirmation} Automatic email is not ready, so an email draft is opening now.`;
