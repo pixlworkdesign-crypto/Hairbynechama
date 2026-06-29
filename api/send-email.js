@@ -1,5 +1,26 @@
 const adminEmail = process.env.ADMIN_EMAIL || "nechamabrenig@gmail.com";
-const fromEmail = process.env.EMAIL_FROM || "Hair by Nechama <onboarding@resend.dev>";
+const fallbackFromEmail = "Hair by Nechama <onboarding@resend.dev>";
+const publicEmailDomains = [
+  "gmail.com",
+  "googlemail.com",
+  "outlook.com",
+  "hotmail.com",
+  "live.com",
+  "icloud.com",
+  "yahoo.com",
+  "aol.com",
+];
+
+const getFromEmail = () => {
+  const configuredFrom = String(process.env.EMAIL_FROM || "").trim();
+  const emailDomain = configuredFrom.match(/@([^>\s]+)/)?.[1]?.toLowerCase();
+
+  if (!configuredFrom || publicEmailDomains.includes(emailDomain)) {
+    return fallbackFromEmail;
+  }
+
+  return configuredFrom;
+};
 
 const json = (response, statusCode, body) => {
   response.statusCode = statusCode;
@@ -121,7 +142,7 @@ const sendResendEmail = async (email) => {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: fromEmail,
+      from: getFromEmail(),
       to: [email.to],
       reply_to: email.reply_to,
       subject: email.subject,
