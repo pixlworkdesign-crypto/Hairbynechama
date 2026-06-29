@@ -236,6 +236,7 @@ const renderServiceQuantityList = (container, choices, prefix) => {
 
   container.innerHTML = "";
   choices.forEach((style) => {
+    const isUnsure = style.name === "Not sure yet";
     const row = document.createElement("label");
     const check = document.createElement("input");
     const name = document.createElement("span");
@@ -252,7 +253,8 @@ const renderServiceQuantityList = (container, choices, prefix) => {
     quantity.step = "1";
     quantity.value = "1";
     quantity.inputMode = "numeric";
-    quantity.disabled = true;
+    quantity.disabled = isUnsure;
+    quantity.hidden = isUnsure;
     quantity.dataset.serviceQuantity = "";
     quantity.name = `${prefix}Quantity`;
     quantity.setAttribute("aria-label", `${style.name} quantity`);
@@ -273,7 +275,8 @@ const resetServiceQuantityList = (container) => {
     if (checkbox) checkbox.checked = false;
     if (quantity) {
       quantity.value = "1";
-      quantity.disabled = true;
+      quantity.disabled = checkbox?.value === "Not sure yet";
+      quantity.hidden = checkbox?.value === "Not sure yet";
     }
   });
 };
@@ -301,14 +304,21 @@ const collectSelectedServices = (container) => {
 
 const updateServiceQuantityState = (event) => {
   const checkbox = event.target.closest("[data-service-checkbox]");
-  if (!checkbox) return;
+  const quantityInput = event.target.closest("[data-service-quantity]");
+  if (!checkbox && !quantityInput) return;
 
-  const row = checkbox.closest("[data-service-row]");
+  const row = (checkbox || quantityInput).closest("[data-service-row]");
+  const rowCheckbox = row?.querySelector("[data-service-checkbox]");
   const quantity = row?.querySelector("[data-service-quantity]");
-  if (!quantity) return;
+  if (!rowCheckbox || !quantity) return;
 
-  const isUnsure = checkbox.value === "Not sure yet";
-  quantity.disabled = !checkbox.checked || isUnsure;
+  if (quantityInput && !quantity.disabled) {
+    rowCheckbox.checked = true;
+  }
+
+  const isUnsure = rowCheckbox.value === "Not sure yet";
+  quantity.disabled = isUnsure;
+  quantity.hidden = isUnsure;
   if (isUnsure) quantity.value = "1";
 };
 
@@ -1172,7 +1182,9 @@ adminCloseButtons.forEach((button) => button.addEventListener("click", closeAdmi
 bookingOpenButtons.forEach((button) => button.addEventListener("click", openBooking));
 bookingCloseButtons.forEach((button) => button.addEventListener("click", closeBooking));
 if (serviceList) serviceList.addEventListener("change", updateServiceQuantityState);
+if (serviceList) serviceList.addEventListener("input", updateServiceQuantityState);
 if (adminBookingServiceList) adminBookingServiceList.addEventListener("change", updateServiceQuantityState);
+if (adminBookingServiceList) adminBookingServiceList.addEventListener("input", updateServiceQuantityState);
 lightboxCloseButtons.forEach((button) => button.addEventListener("click", closeLightbox));
 
 adminContent.addEventListener("click", (event) => {
